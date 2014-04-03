@@ -124,7 +124,6 @@ console.log(dialog)
             }
 
             vm.$close = function() {
-                console.log("xxxxxxx")
                 vmodel.toggle = false
             }
 
@@ -152,7 +151,6 @@ console.log(dialog)
                 }
             }
             vm.$watch("toggle", function(v) {
-                console.log(v)
                 if (v === false) {
                     avalon.Array.remove(overlayInstances, vmodel)
                     if (!overlayInstances.length) {

@@ -1,6 +1,6 @@
 //avalon 1.2.5 2014.4.2
 define(["avalon"], function(avalon) {
-    var lastActive
+
     var baseClasses = "ui-button ui-widget ui-state-default"
     var typeClasses = "ui-button-icons-only ui-button-icon-only ui-button-text-icons ui-button-text-icon-primary ui-button-text-icon-secondary ui-button-text-only"
     var widget = avalon.ui.button = function(element, data, vmodels) {
@@ -55,12 +55,22 @@ define(["avalon"], function(avalon) {
                     })
                 }
 
-                buttonElement.setAttribute("ms-hover", "ui-state-hover")
-                buttonElement.setAttribute("ms-mouseenter", "$mouseenter")
+                buttonElement.setAttribute("ms-hover-1024", "ui-state-hover")
 
-                buttonElement.setAttribute("ms-mouseleave", "$mouseleave")
-                buttonElement.setAttribute("ms-click", "$click")
-
+                $button
+                        .bind("mouseenter", function() {
+                            if (options.disabled) {
+                                return
+                            }
+                            avalon(this).removeClass(options.activeClass)
+                        })
+                        .bind("click", function(event) {
+                            stop(event)
+                            if (typeof options.click === "function") {
+                                options.click.call(vmodels.buttonElement, event, vmodel)
+                            }
+                        })
+              
                 if (vmType === "radio") {
                     //radio组都共享一个VM，实现切换效果
                     buttonElement.setAttribute("ms-class-3", "ui-state-active:$radio.active == '" + data.buttonId + "'")
@@ -108,29 +118,8 @@ define(["avalon"], function(avalon) {
                     button.title = ""
                 }
             }
-            vm.$mouseenter = function() {
-                if (options.disabled) {
-                    return
-                }
-                if (this === lastActive) {
-                    avalon(this).addClass("ui-state-active")
-                }
-            }
 
-            vm.$mouseleave = function() {
-                if (options.disabled) {
-                    return
-                }
-                avalon(this).removeClass(options.activeClass)
 
-            }
-
-            vm.$click = function(event) {
-                stop(event)
-                if (typeof options.click === "function") {
-                    options.click.call(vmodels.buttonElement, event, vmodel)
-                }
-            }
             //改变按钮的外观
             vm.$resetButton = function() {
                 if (vm.$type === "input") {
@@ -227,7 +216,7 @@ define(["avalon"], function(avalon) {
     widget.defaults = {
         $type: "",
         hasTitle: false,
-        text: true,//决定是否使用 ui-button-icons-only ui-button-icon-only ui-button-text-only
+        text: true, //决定是否使用 ui-button-icons-only ui-button-icon-only ui-button-text-only
         label: "",
         iconPrimary: "",
         iconSecondary: ""
@@ -289,7 +278,7 @@ define(["avalon"], function(avalon) {
  data-button-text = false 决定其内部是否只显示图标
  
  data-button-label="xxx" 指定内容
-      
-click 回凋，this为生成的按钮，第一个传参为事件对象， 第二个为控件VM
-        
+ 
+ click 回凋，this为生成的按钮，第一个传参为事件对象， 第二个为控件VM
+ 
  */

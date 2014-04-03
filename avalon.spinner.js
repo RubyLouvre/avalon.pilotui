@@ -1,20 +1,49 @@
-define(["avalon", "avalon.button"], function(avalon) {
-
+define(["avalon", "avalon.button"], function(avalon, button, spinnerHTML) {
+    var initSpinnerStyle
     var widget = avalon.ui.spinner = function(element, data, vmodels) {
-        var $element = avalon(element),options = data.spinnerOptions,
-                model, el
-        var fragment = document.createDocumentFragment()
-        //这才是真正的UI
-        var span = document.createElement("span")
-        span.className = "ui-spinner ui-widget ui-widget-content ui-corner-all"
-        span.innerHTML = '<a class="ui-spinner-button ui-spinner-up ui-corner-tr" ms-widget="button" data-button-corner-class="false"  data-button-primary="ui-icon ui-icon-triangle-1-n">&#9650;</a>' +
-                '<a class="ui-spinner-button ui-spinner-down ui-corner-br" ms-widget="button"  data-button-corner-class="false" data-button-primary="ui-icon ui-icon-triangle-1-s" >&#9660;</a>'
-        $element.addClass("ui-spinner-input")
+        var $element = avalon(element), options = data.spinnerOptions,
+      
 
-        element.autocomplete = "off"
-        model = avalon.define(data.spinnerId, function(vm) {
+
+
+        vmodel = avalon.define(data.spinnerId, function(vm) {
             vm.min = options.min
             avalon.mix(vm, options)
+            vm.$init = function() {
+                var span = document.createElement("span")
+                span.className = "ui-spinner ui-widget ui-widget-content ui-corner-all"
+                var array = spinnerHTML.split("MS_OPTION_STYLE")
+                var cssText = array[1].replace(/\<\?style\>/ig, "")
+                span.innerHTML = array[0]
+                $element.addClass("ui-spinner-input")
+                element.autocomplete = "off"
+                if (!initSpinnerStyle) {
+                    var styleEl = document.getElementById("avalonStyle")
+                    try {
+                        styleEl.innerHTML += cssText
+                    } catch (e) {
+                        styleEl.styleSheet.cssText += cssText
+                    }
+                    initSpinnerStyle = true
+                }
+                element.parentNode.insertBefore(span, element.nextSibling)
+                var fragment = document.createDocumentFragment()
+                fragment.appendChild(element)
+                var buttons = []
+                while (el = span.firstChild) {
+                    if (el.tagName === "A") {
+                        buttons.push(el)
+                    }
+                    fragment.appendChild(el)
+                }
+                element.setAttribute("ms-attr-value", "value")
+                element = span//偷天换日
+
+                buttons[0].setAttribute("ms-click", "addNumber")
+                buttons[1].setAttribute("ms-click", "reduceNumber")
+                element.appendChild(fragment)
+                avalon.scan(element, [vmodel].concat(vmodels))
+            }
             vm.addNumber = function(e) {
                 e.preventDefault()
                 vm.value += vm.step
@@ -31,22 +60,7 @@ define(["avalon", "avalon.button"], function(avalon) {
             }
         })
         avalon.nextTick(function() {
-            element.parentNode.insertBefore(span, element.nextSibling)
-            fragment.appendChild(element)
-            var buttons = []
-            while (el = span.firstChild) {
-                if (el.tagName === "A") {
-                    buttons.push(el)
-                }
-                fragment.appendChild(el)
-            }
-            element.setAttribute("ms-attr-value", "value")
-            element = span//偷天换日
 
-            buttons[0].setAttribute("ms-click", "addNumber")
-            buttons[1].setAttribute("ms-click", "reduceNumber")
-            element.appendChild(fragment)
-            avalon.scan(element, [model].concat(vmodels))
         })
         return model
     }

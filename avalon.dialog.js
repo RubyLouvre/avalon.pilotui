@@ -50,7 +50,7 @@ define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML
         var $element = avalon(element), options = data.dialogOptions
 
         var dialog = avalon.parseHTML(dialogHTML).firstChild, parentNode
-console.log(dialog)
+
         if (!options.title) {
             options.title = element.title || "&nbsp;"
         }

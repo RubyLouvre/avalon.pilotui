@@ -57,48 +57,45 @@ define(["avalon"], function(avalon) {
 
                 buttonElement.setAttribute("ms-hover-1024", "ui-state-hover")
 
-                $button
-                        .bind("mouseenter", function() {
-                            if (options.disabled) {
-                                return
-                            }
-                            avalon(this).removeClass(options.activeClass)
-                        })
-                        .bind("click", function(event) {
-                            stop(event)
-                            if (typeof options.click === "function") {
-                                options.click.call(vmodels.buttonElement, event, vmodel)
-                            }
-                        })
-              
                 if (vmType === "radio") {
                     //radio组都共享一个VM，实现切换效果
                     buttonElement.setAttribute("ms-class-3", "ui-state-active:$radio.active == '" + data.buttonId + "'")
                 } else if (vmType === "button" || vmType === "input") {
-                    $button
-                            .bind("mousedown", function(event) {
-                                stop(event)
-                                $button.addClass("ui-state-active")
-                            })
-                            .bind("mouseup", function(event) {
-                                stop(event)
-                                $button.removeClass("ui-state-active")
-                            })
-                            .bind("blur", function() {
-                                $button.removeClass("ui-state-active");
-                            })
+                    $button.bind("mousedown", function(event) {
+                        stop(event)
+                        $button.addClass("ui-state-active")
+                    })
+                    $button.bind("mouseup", function(event) {
+                        stop(event)
+                        $button.removeClass("ui-state-active")
+                    })
+                    $button.bind("blur", function() {
+                        $button.removeClass("ui-state-active");
+                    })
                 }
                 if (!vm.label) {
                     vm.label = vm.$type === "input" ? buttonElement.value : buttonElement.innerHTML
                 }
 
-                $button
-                        .bind("focus", function() {
-                            $button.removeClass("ui-state-focus");
-                        })
-                        .bind("blur", function() {
-                            $button.removeClass("ui-state-focus");
-                        })
+                $button.bind("focus", function() {
+                    $button.removeClass("ui-state-focus");
+                })
+
+                $button.bind("blur", function() {
+                    $button.removeClass("ui-state-focus");
+                })
+                $button.bind("mouseleave", function() {
+                    if (options.disabled) {
+                        return
+                    }
+                    avalon(this).removeClass(options.activeClass)
+                })
+                $button.bind("click", function(event) {
+                    stop(event)
+                    if (typeof options.click === "function") {
+                        options.click.call(vmodels.buttonElement, event, vmodel)
+                    }
+                })
 
                 vm.$resetButton()
 
@@ -106,11 +103,11 @@ define(["avalon"], function(avalon) {
 
             }
             vm.$remove = function() {
-                avalon(element)
-                        .removeClass("ui-helper-hidden-accessible")
+                avalon(element).removeClass("ui-helper-hidden-accessible")
+                
                 var button = vm.buttonElement
-                avalon(button)
-                        .removeClass(options.baseClasses + " ui-state-active " + typeClasses)
+
+                avalon(button).removeClass(options.baseClasses + " ui-state-active " + typeClasses)
 
                 button.innerHTML = vm.label
 

@@ -2,7 +2,7 @@
  avalon 1.2.5 2014.4.2
  Bootstrap创始人Mark Otto发布了Bootstrap编码规范 http://codeguide.bootcss.com/
  */
-define(["avalon.button2", "text!avalon.dialog.html"], function(avalon, dialogHTML) {
+define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML) {
 
     //判定是否支持css position fixed
     var supportFixed = true, initDialogStyle
@@ -123,8 +123,9 @@ console.log(dialog)
                 avalon.Array.remove(overlayInstances, vmodel)
             }
 
-            vm.close = function() {
-                vm.toggle = false
+            vm.$close = function() {
+                console.log("xxxxxxx")
+                vmodel.toggle = false
             }
 
             vm.dragHandle = function(e) {
@@ -151,6 +152,7 @@ console.log(dialog)
                 }
             }
             vm.$watch("toggle", function(v) {
+                console.log(v)
                 if (v === false) {
                     avalon.Array.remove(overlayInstances, vmodel)
                     if (!overlayInstances.length) {

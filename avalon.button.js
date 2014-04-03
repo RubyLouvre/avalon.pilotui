@@ -116,7 +116,6 @@ define(["avalon"], function(avalon) {
                 }
             }
 
-
             //改变按钮的外观
             vm.$resetButton = function() {
                 if (vm.$type === "input") {

@@ -1,152 +1,295 @@
+//avalon 1.2.5 2014.4.2
 define(["avalon"], function(avalon) {
+    var lastActive
+    var baseClasses = "ui-button ui-widget ui-state-default"
+    var typeClasses = "ui-button-icons-only ui-button-icon-only ui-button-text-icons ui-button-text-icon-primary ui-button-text-icon-secondary ui-button-text-only"
+    var widget = avalon.ui.button = function(element, data, vmodels) {
 
-    var widget = avalon.ui.button = function(element, data, vmodels, opts) {
-        var $element = avalon(element), title = element.title,
-                html = element.innerHTML, model, el, checkbox;
-        element.title = "";
-        var fragment = document.createDocumentFragment()
+        var options = data.buttonOptions
 
-        //处理配置
-        var options = data.buttonOptions //valon.mix({}, defaults, opts, $element.data())
-
-        //处理radio, checkbox
-        var isRadio = element.type === "radio";
-        var isCheckbox = element.type === "checkbox";
-        var radios = [];
-        if (isRadio && element.parentNode.$radio) {
-            model = element.parentNode.$radio;
-            radios = model.$radios;
+        if (element.type === "radio") {
+            options.$radio = {}
         }
-        var radioIndex = radios.length;
-        var toggleButton = isCheckbox || isRadio;
-        var activeClass = !toggleButton ? "ui-state-active" : "";
-        if (toggleButton) { //偷天换日，用label代替原来的input[type=checkbox]，input[type=checkbox]
-            var label = document.createElement("label")
-            checkbox = element;
-            label.innerHTML = options.label || checkbox.value;
-            checkbox.parentNode.insertBefore(label, checkbox.nextSibling)
-            $element.addClass("ui-helper-hidden-accessible")
-            element = label;//  偷天换日
-            $element = avalon(element)
-        }
-        while (el = element.firstChild) {
-            fragment.appendChild(el)
-        }
-        $element.addClass("ui-button ui-widget ui-state-default")
-
-        //如果使用了buttonset
-
-        if (typeof options.cornerClass === "string") {
-            $element.addClass(options.cornerClass)
-        } else if (options.cornerClass !== false) {
-            $element.addClass("ui-corner-all")
-        }
-
-        //创建按钮的内部，将它原来的内部放到一个span.ui-button-text
-        if (fragment.childNodes.length) {
-            var span = document.createElement("span")
-            span.className = "ui-button-text";
-            while (fragment.firstChild) {
-                span.appendChild(fragment.firstChild)
+        function stop(event) {
+            if (options.disabled) {
+                event.preventDefault()
+                event.stopImmediatePropagation()
             }
-            $element.addClass("ui-button-text-only")
-            fragment.appendChild(span)
         }
-        //如果指定了icon， icon也占用一个span
-        var iconClass = options.text === false ? "ui-button-icon-only" :
-                typeof options.secondary === "string" ? "ui-button-text-icons" :
-                typeof options.primary === "string" ? "ui-button-text-icon-primary" : ""
-        if (options.text === false) {
-            element.title = title || html;
-        }
-        if (iconClass) {
-            $element.addClass(iconClass)
-        }
-        if (options.primary) {
-            $element.removeClass("ui-button-text-only")
-            var span = document.createElement("span")
-            span.className = options.primary + " ui-button-icon-primary ui-icon";
-            fragment.insertBefore(span, fragment.firstChild)
-        }
-        if (options.secondary) {
-            $element.removeClass("ui-button-text-only")
-            var span = document.createElement("span")
-            span.className = options.secondary + " ui-button-icon-secondary ui-icon";
-            fragment.appendChild(span)
-        }
+        var vmodel = avalon.define(data.buttonId, function(vm) {
 
-        if (isCheckbox) {
-            $element.bind("click", function() {
-                model.checked = !model.checked
-            })
-        }
-        if (isRadio) {
-            $element.bind("click", function() {
-                model.radioActived = radioIndex
-            })
-        }
-        if (!model) {
-            model = avalon.define(data.buttonId, function(vm) {
-                vm.disabled = options.disabled
-                vm.radioActived = 0
-                vm.checked = !!(checkbox || {}).checked;
-                vm.$radios = [];
-            })
-        }
-        if (isRadio) {
-            element.parentNode.$radio = model;
-            model.$radios.push(element)
-        }
-        avalon.nextTick(function() {
-            if (element.tagName !== "INPUT") {
-                element.appendChild(fragment)
+            avalon.mix(vm, options)
+            // vm.$radioId = ("radio" + Math.random()).replace("0.","")
+            vm.$skipArray = ["text", "hasTitle", "icons"]
+            vm.buttonElement = element
+            vm.$init = function() {
+                if (typeof options.disabled !== "boolean") {
+                    options.disabled = !!element.disabled
+                } else {
+                    element.disabled = options.disabled
+                }
+                vm.$determineButtonType()
+                var buttonElement = vm.buttonElement
+
+                vm.hasTitle = !!buttonElement.getAttribute("title")
+                var vmType = vm.$type
+                var toggleButton = vmType === "checkbox" || vmType === "radio"
+                //如果使用了buttonset
+                options.baseClasses = baseClasses
+                if (typeof options.cornerClass === "string") {
+                    options.baseClasses += (" " + options.cornerClass)
+                } else if (options.cornerClass !== false) {
+                    options.baseClasses += " ui-corner-all"
+                }
+                var $button = avalon(buttonElement).addClass(options.baseClasses)
+                options.activeClass = !toggleButton ? "ui-state-active" : ""
+                if (toggleButton) {
+                    avalon(element).bind("change", function() {
+                        if (vmType === "radio") {
+                            if (this.checked) {
+                                vmodel.$radio.active = data.buttonId
+                            }
+                        } else if (vmType === "checkbox") {
+                            avalon(vmodel.buttonElement).toggleClass("ui-state-active", this.checked)
+                        }
+                    })
+                }
+
+                buttonElement.setAttribute("ms-hover", "ui-state-hover")
+                buttonElement.setAttribute("ms-mouseenter", "$mouseenter")
+
+                buttonElement.setAttribute("ms-mouseleave", "$mouseleave")
+                buttonElement.setAttribute("ms-click", "$click")
+
+                if (vmType === "radio") {
+                    //radio组都共享一个VM，实现切换效果
+                    buttonElement.setAttribute("ms-class-3", "ui-state-active:$radio.active == '" + data.buttonId + "'")
+                } else if (vmType === "button" || vmType === "input") {
+                    $button
+                            .bind("mousedown", function(event) {
+                                stop(event)
+                                $button.addClass("ui-state-active")
+                            })
+                            .bind("mouseup", function(event) {
+                                stop(event)
+                                $button.removeClass("ui-state-active")
+                            })
+                            .bind("blur", function() {
+                                $button.removeClass("ui-state-active");
+                            })
+                }
+                if (!vm.label) {
+                    vm.label = vm.$type === "input" ? buttonElement.value : buttonElement.innerHTML
+                }
+
+                $button
+                        .bind("focus", function() {
+                            $button.removeClass("ui-state-focus");
+                        })
+                        .bind("blur", function() {
+                            $button.removeClass("ui-state-focus");
+                        })
+
+                vm.$resetButton()
+
+                avalon.scan(buttonElement, [vmodel].concat(vmodels))
+
             }
-            element.setAttribute("ms-hover", "ui-state-hover")
-            element.setAttribute("ms-class-0", "ui-state-disabled:disabled")
-            element.setAttribute("ms-active", activeClass + ":!disabled")
-            if (isCheckbox) {
-                element.setAttribute("ms-class-1", "ui-state-active:checked")
-                checkbox.setAttribute("ms-checked", "checked")
+            vm.$remove = function() {
+                avalon(element)
+                        .removeClass("ui-helper-hidden-accessible")
+                var button = vm.buttonElement
+                avalon(button)
+                        .removeClass(options.baseClasses + " ui-state-active " + typeClasses)
+
+                button.innerHTML = vm.label
+
+                if (!vm.hasTitle) {
+                    button.title = ""
+                }
             }
-            if (isRadio) {
-                element.setAttribute("ms-class-2", "ui-state-active:radioActived == " + radioIndex)
-                element.setAttribute("ms-checked", "radioActived == " + radioIndex)
+            vm.$mouseenter = function() {
+                if (options.disabled) {
+                    return
+                }
+                if (this === lastActive) {
+                    avalon(this).addClass("ui-state-active")
+                }
             }
-            if (toggleButton) {
-                avalon.scan(checkbox, model)
+
+            vm.$mouseleave = function() {
+                if (options.disabled) {
+                    return
+                }
+                avalon(this).removeClass(options.activeClass)
+
             }
-            avalon.scan(element, [model].concat(vmodels))
+
+            vm.$click = function(event) {
+                stop(event)
+                if (typeof options.click === "function") {
+                    options.click.call(vmodels.buttonElement, event, vmodel)
+                }
+            }
+            //改变按钮的外观
+            vm.$resetButton = function() {
+                if (vm.$type === "input") {
+                    if (options.label) {
+                        avalon(element).val(options.label)
+                    }
+                    return
+                }
+
+                var buttonElement = avalon(vm.buttonElement).removeClass(typeClasses)[0]
+
+                var buttonText = '<span class="ui-button-text">{{label | html}}</span>'
+                var iconPrimary = vm.iconPrimary
+                var iconSecondary = vm.iconSecondary
+                var multipleIcons = iconPrimary && iconSecondary
+                var buttonClasses = []
+                if (iconPrimary || iconSecondary) {
+                    if (options.text) {
+                        buttonClasses.push("ui-button-text-icon" + (multipleIcons ? "s" : (iconPrimary ? "-primary" : "-secondary")))
+                    }
+
+                    if (iconPrimary) {
+                        buttonText = "<span class='ui-button-icon-primary ui-icon' ms-class='{{iconPrimary}}'></span>" + buttonText
+                    }
+
+                    if (iconSecondary) {
+                        buttonText += "<span class='ui-button-icon-secondary ui-icon' ms-class='{{iconSecondary}}'></span>"
+                    }
+
+                    if (!vm.text) {
+                        buttonClasses.push(multipleIcons ? "ui-button-icons-only" : "ui-button-icon-only")
+                        if (!vm.hasTitle) {
+                            buttonElement.setAttribute("ms-title", "label")
+                        }
+                    }
+                } else {
+                    buttonClasses.push("ui-button-text-only")
+                }
+
+                buttonElement.innerHTML = buttonText
+                avalon(buttonElement).addClass(buttonClasses.join(" "))
+            }
+
+            vm.$determineButtonType = function() {
+
+                if (element.tagName.toLowerCase() === "input") {
+                    var elementType = element.type
+                    switch (elementType) {
+                        case "checkbox":
+                        case "radio":
+                            vmodel.$type = elementType
+                            var ancestor = element.parentNode
+                            var id = element.id
+                            if (id) {
+                                vmodel.buttonElement = findButtonElement(ancestor, id)
+                                if (!vmodel.buttonElement) {
+                                    vmodel.buttonElement = findButtonElement(ancestor.parentNode, id)
+                                }
+                            }
+                            if (elementType === "radio") {
+                                var form = element.form || document.body
+                                var id = form.getAttribute("data-radio-id")
+                                if (!id) {
+                                    id = (new Date - 0) + ""
+                                    form.setAttribute("data-radio-id", id)
+                                }
+                                var radioGroupId = "proxy" + id + element.name
+                                if (!avalon.vmodels[radioGroupId]) {
+                                    avalon.define(radioGroupId, function(vm) {
+                                        vm.active = ""
+                                    })
+                                }
+                                vmodel.$radio = avalon.vmodels[radioGroupId]
+
+                            }
+                            avalon(element).addClass("ui-helper-hidden-accessible")
+                            if (element.checked) {
+                                avalon(vmodel.buttonElement).addClass("ui-state-active")
+                            }
+                            break
+                        default:
+                            vmodel.$type = "input"
+                            break
+                    }
+                } else {
+                    vmodel.$type = "button"
+                }
+            }
         })
-        return model
+        return vmodel
+
     }
+
     widget.defaults = {
-        disabled: false
+        $type: "",
+        hasTitle: false,
+        text: true,//决定是否使用 ui-button-icons-only ui-button-icon-only ui-button-text-only
+        label: "",
+        iconPrimary: "",
+        iconSecondary: ""
     }
-    avalon.ui.buttonset = function(element) {
-        var $element = avalon(element)
-        $element.addClass("ui-buttonset")
-        var children = element.children;
-        for (var i = 0, el; el = children[i++]; ) {
-            el.setAttribute("data-button-corner-class", "true")
+
+
+    function findButtonElement(elem, id) {
+        var nodes = elem.getElementsByTagName("label")
+        for (var i = 0, node; node = nodes[i++]; ) {
+            if (node.htmlFor === id) {
+                return node
+            }
         }
-        children[0].setAttribute("data-button-corner-class", "ui-corner-left")
-        children[children.length - 1].setAttribute("data-button-corner-class", "ui-corner-right")
+        return  null
     }
+
+    avalon.ui.buttonset = function(element, data, vmodels) {
+        return {
+            $init: function() {
+                avalon(element).addClass("ui-buttonset")
+                var children = element.childNodes, buttons = []
+                for (var i = 0, el; el = children[i++]; ) {
+                    if (el.nodeType === 1 && (/^(button|input|a)$/i.test(el.tagName) || el.getAttribute("data-button"))) {
+                        el.setAttribute("data-button-corner-class", "false")
+                        buttons.push(el)
+                    }
+                }
+                var n = buttons.length
+                if (n) {
+                    buttons[0].setAttribute("data-button-corner-class", "ui-corner-left")
+                    buttons[n - 1].setAttribute("data-button-corner-class", "ui-corner-right")
+                }
+                data.buttons = buttons
+                avalon.scan(element, vmodels)
+            },
+            $remove: function(el) {
+                avalon(element).removeClass("ui-buttonset")
+                while (el = data.buttons.pop()) {
+                    el.removeAttribute("data-button-corner-class")
+                }
+                delete data.buttons
+            }
+        }
+    }
+
     return avalon
 })
 /**
- data-primary="ui-icon-gear" 用于指定左边的ICON
- data-secondary="ui-icon-triangle-1-s" 用于指定右边的ICON
+ data-button-icon-primary="ui-icon-gear" 用于指定左边的ICON
+ data-button-icon-secondary="ui-icon-triangle-1-s" 用于指定右边的ICON
  
- data-corner-class="false" 不添加ui-corner-all圆角类名
- data-corner-class="conrer" 添加你指定的这个conrer圆角类名
- 不写data-corner-class 添加ui-corner-all圆角类名
+ data-button-corner-class="false" 不添加ui-corner-all圆角类名
+ data-button-corner-class="conrer" 添加你指定的这个conrer圆角类名
  
- button, a, span等标签，取其innerHTML作为UI内容，否则需要取其title
+ 不写data-button-corner-class 添加ui-corner-all圆角类名
  
- data-text = false 决定其内部是否只显示图标
- * 
- * 
+ button, a, span[data-button]等标签，取其innerHTML作为UI内容，否则需要取其title
+ 
+ data-button-text = false 决定其内部是否只显示图标
+ 
+ data-button-label="xxx" 指定内容
+      
+click 回凋，this为生成的按钮，第一个传参为事件对象， 第二个为控件VM
+        
  */
-
-//X-tag和Web组件帮你提速应用开发 http://mozilla.com.cn/post/51451/

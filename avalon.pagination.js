@@ -1,5 +1,4 @@
-define(["avalon", "text!avalon.pagination.html"], function(avalon, tmpl) {
-
+define(["avalon", "text!avalon.pagination.html"], function(avalon, pageHTML) {
 
     var widget = avalon.ui.pagination = function(element, data, vmodels) {
         var $element = avalon(element)
@@ -10,11 +9,11 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, tmpl) {
             vm.$skipArray = ["perPages", "showPages", "currentIndex", "total", "ellipseText", "alwaysShowPrev", "alwaysShowNext"]//这些属性不被监控
             vm.$init = function() {
                 if (vmodel.alwaysShowPrev) {
-                    tmpl = tmpl.replace('ms-if="firstPage!==1"', "")
+                    pageHTML = pageHTML.replace('ms-if="firstPage!==1"', "")
                 }
                 if (vmodel.alwaysShowNext) {
                     var index = 0
-                    tmpl = tmpl.replace(/ms-if="lastPage!==maxPage"/g, function(a) {
+                    pageHTML = pageHTML.replace(/ms-if="lastPage!==maxPage"/g, function(a) {
                         index++
                         if (index == 3) {
                             return ""
@@ -23,7 +22,7 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, tmpl) {
                         }
                     })
                 }
-                element.innerHTML = tmpl
+                element.innerHTML = pageHTML
                 avalon.scan(element, [vmodel].concat(vmodels))
             }
             vm.jumpPage = function(event, page) {

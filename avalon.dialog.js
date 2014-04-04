@@ -3,78 +3,23 @@
  Bootstrap创始人Mark Otto发布了Bootstrap编码规范 http://codeguide.bootcss.com/
  */
 define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML) {
-
     //判定是否支持css position fixed
-    var supportFixed = true, initDialogStyle
-    new function() {
-        var test = document.createElement('div'),
-                control = test.cloneNode(false),
-                fake = false,
-                root = document.body || (function() {
-                    fake = true
-                    return document.documentElement.appendChild(document.createElement('body'))
-                }())
-        var oldCssText = root.style.cssText
-        root.style.cssText = 'padding:0;margin:0'
-        test.style.cssText = 'position:fixed;top:42px'
-        root.appendChild(test)
-        root.appendChild(control)
-        supportFixed = test.offsetTop !== control.offsetTop
-        root.removeChild(test)
-        root.removeChild(control)
-        root.style.cssText = oldCssText
-        if (fake) {
-            document.documentElement.removeChild(root)
-        }
-    }
-    //遮罩层(全部dialog共用)
-    var overlay = avalon.parseHTML('<div class="ui-widget-overlay ui-front">&nbsp;</div>').firstChild
-//判定是否支持css3 transform
-    var transforms = {//IE9+ firefox3.5+ chrome4+ safari3.1+ opera10.5+
-        "transform": "transform",
-        "-moz-transform": "mozTransform",
-        "-webkit-transform": "webkitTransform",
-        "-ms-transform": "msTransform"
-    }
-    var cssText = " top:50%!important;left:50%!important;", supportTransform = false
-    for (var i in transforms) {
-        if (transforms[i] in overlay.style) {
-            supportTransform = true
-            cssText += i + ":translate(-50%, -50%)"
-            break
-        }
-    }
-    cssText = "\n.ui-dialog-vertical-center{" + cssText + "}\n.ui-dialog-titlebar {cursor:move;}"
-
+    var supportFixed = true, supportTransform
     var widget = avalon.ui.dialog = function(element, data, vmodels) {
-        var $element = avalon(element), options = data.dialogOptions
-
-        var dialog = avalon.parseHTML(dialogHTML).firstChild, parentNode
-
+        var options = data.dialogOptions
+        options.middle = !!options.middle
         if (!options.title) {
             options.title = element.title || "&nbsp;"
         }
-        options.middle = !!options.middle
 
-
+        var dialog = avalon.parseHTML(dialogHTML).firstChild
+        
         var vmodel = avalon.define(data.dialogId, function(vm) {
             avalon.mix(vm, options)
 
             vm.$skipArray = ["parent", "modal", "fullScreen"]
 
             vm.$init = function() {
-                //通过CSS3 transform垂直居中
-                if (!initDialogStyle) {
-                    if (supportTransform) {
-                        var styleEl = document.getElementById("avalonStyle")
-                        try {
-                            styleEl.innerHTML += cssText
-                        } catch (e) {
-                            styleEl.styleSheet.cssText += cssText
-                        }
-                    }
-                    initDialogStyle = true
-                }
                 //CSS自适应容器的大小
                 if (options.height === "auto") {
                     var style = element.style
@@ -86,18 +31,15 @@ define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML
                 element.parentNode.removeChild(element)
 
                 avalon.ready(function() {
-                    $element.addClass("ui-dialog-content ui-widget-content")
-
+                    avalon(element).addClass("ui-dialog-content ui-widget-content")
                     vmodel.parent.appendChild(dialog)
-
                     element.removeAttribute("title")
-
                     dialog.appendChild(element)
                     element.msRetain = false
 
                     vmodel.fullScreen = /body|html/i.test(dialog.offsetParent.tagName)
                     if (vmodel.fullScreen) {
-                   
+
                         dialog.setAttribute("data-drag-containment", "window")//这是给ms-draggable组件用的
                     }
                     avalon.scan(dialog, [vmodel].concat(vmodels))
@@ -181,6 +123,53 @@ define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML
     }
     var overlayInstances = widget.overlayInstances = []
     //============================================
+    new function() {
+        var test = document.createElement('div'),
+                control = test.cloneNode(false),
+                fake = false,
+                root = document.body || (function() {
+                    fake = true
+                    return document.documentElement.appendChild(document.createElement('body'))
+                }())
+        var oldCssText = root.style.cssText
+        root.style.cssText = 'padding:0;margin:0'
+        test.style.cssText = 'position:fixed;top:42px'
+        root.appendChild(test)
+        root.appendChild(control)
+        supportFixed = test.offsetTop !== control.offsetTop
+        root.removeChild(test)
+        root.removeChild(control)
+        root.style.cssText = oldCssText
+        if (fake) {
+            document.documentElement.removeChild(root)
+        }
+    }
+    //遮罩层(全部dialog共用)
+    var overlay = avalon.parseHTML('<div class="ui-widget-overlay ui-front">&nbsp;</div>').firstChild
+//判定是否支持css3 transform
+    var transforms = {//IE9+ firefox3.5+ chrome4+ safari3.1+ opera10.5+
+        "transform": "transform",
+        "-moz-transform": "mozTransform",
+        "-webkit-transform": "webkitTransform",
+        "-ms-transform": "msTransform"
+    }
+    var cssText = " top:50%!important;left:50%!important;"
+    for (var i in transforms) {
+        if (transforms[i] in overlay.style) {
+            supportTransform = true
+            cssText += i + ":translate(-50%, -50%)"
+            break
+        }
+    }
+    cssText = "\n.ui-dialog-vertical-center{" + cssText + "}\n.ui-dialog-titlebar {cursor:move;}"
+    if (supportTransform) {
+        var styleEl = document.getElementById("avalonStyle")
+        try {
+            styleEl.innerHTML += cssText
+        } catch (e) {
+            styleEl.styleSheet.cssText += cssText
+        }
+    }
 
     function keepFocus(target) {
         function checkFocus() {
@@ -202,7 +191,6 @@ define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML
         checkFocus()
         avalon.nextTick(checkFocus)
     }
-
 
     function resetCenter(vmodel, target) {
         if (vmodel.toggle) {

@@ -186,6 +186,7 @@
         subscribers: subscribers,
         ui: {},
         log: log,
+        version: 1.25,
         slice: W3C ? function(nodes, start, end) {
             return aslice.call(nodes, start, end)
         } : function(nodes, start, end) {

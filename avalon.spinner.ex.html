@@ -4,20 +4,22 @@
     <head>
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <script src="../avalon.js"></script>
+        <script src="avalon.js"></script>
         <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
 
         <script>
             require("avalon.spinner", function() {
+                avalon.define("test", function(){
+                    
+                })
                 avalon.scan()
             })
         </script>
     </head>
     <body>
-        <div>
+        <div ms-controller="test">
             <input ms-widget="spinner" name="value" />
         </div>
-
 
 
     </body>

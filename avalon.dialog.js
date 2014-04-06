@@ -2,7 +2,7 @@
  avalon 1.2.5 2014.4.2
  Bootstrap创始人Mark Otto发布了Bootstrap编码规范 http://codeguide.bootcss.com/
  */
-define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML) {
+define(["avalon.button", "text!avalon.dialog.html", "text!avalon.dialog.buttons.html"], function(avalon, dialogHTML, buttonsHTML) {
     //判定是否支持css position fixed
     var supportFixed = true, supportTransform
     var widget = avalon.ui.dialog = function(element, data, vmodels) {
@@ -11,9 +11,10 @@ define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML
         if (!options.title) {
             options.title = element.title || "&nbsp;"
         }
-
+        var buttonsID = "ms" + Math.random()
+        dialogHTML = dialogHTML.replace("MS_OPTION_BUTTONS", buttonsID)
         var dialog = avalon.parseHTML(dialogHTML).firstChild
-        
+
         var vmodel = avalon.define(data.dialogId, function(vm) {
             avalon.mix(vm, options)
 
@@ -28,24 +29,28 @@ define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML
                 }
                 element.msRetain = true //防止被offtree
                 vmodel.parent = vmodel.parent === "parent" ? element.parentNode : document.body
-                element.parentNode.removeChild(element)
+                element.removeAttribute("title")
+                avalon(element).addClass("ui-dialog-content ui-widget-content")
+                dialog.appendChild(element)
 
                 avalon.ready(function() {
-                    avalon(element).addClass("ui-dialog-content ui-widget-content")
                     vmodel.parent.appendChild(dialog)
-                    element.removeAttribute("title")
-                    dialog.appendChild(element)
                     element.msRetain = false
 
                     vmodel.fullScreen = /body|html/i.test(dialog.offsetParent.tagName)
                     if (vmodel.fullScreen) {
-
                         dialog.setAttribute("data-drag-containment", "window")//这是给ms-draggable组件用的
                     }
-                    avalon.scan(dialog, [vmodel].concat(vmodels))
+                    vmodels = [vmodel].concat(vmodels)
+                    avalon.scan(dialog, vmodels)
 
                     avalon.nextTick(function() {
                         resetCenter(vmodel, dialog)
+                        if (options.buttons && options.buttons.length) {
+                            var fragment = avalon.parseHTML(buttonsHTML).firstChild
+                            dialog.appendChild(fragment)
+                            avalon.scan(fragment, vmodels)
+                        }
                     })
                     //如果支持使用transform实现全屏居中，那么就不需要绑定事件了
                     if (vmodel.fullScreen && supportTransform) {
@@ -114,6 +119,7 @@ define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML
         fullScreen: false, //全屏显示
         middle: true, //垂直居中
         width: 300,
+        buttons: [],
         height: "auto",
         minHeight: 150,
         minWidth: 150,
@@ -198,7 +204,7 @@ define(["avalon.button", "text!avalon.dialog.html"], function(avalon, dialogHTML
             if (vmodel.middle) {
                 if (vmodel.fullScreen) {//如果是基于窗口垂直居中
                     if (supportTransform) {
-                        avalon(target).addClass("ui-target-vertical-center")
+                        avalon(target).addClass("ui-dialog-vertical-center")
                     } else if (supportFixed) {
                         target.style.position = "fixed"
                         var l = (avalon(window).width() - target.offsetWidth) / 2

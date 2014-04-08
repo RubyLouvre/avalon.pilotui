@@ -1,9 +1,20 @@
-define(["avalon", "css!avalon.select.css"], function(avalon) {
+define(["avalon", "text!avalon.select.html"], function(avalon, menuHTML) {
+
     //判定是否触摸界面
+    var ttt = menuHTML.split("MS_OPTION_STYLE")
+    var cssText = ttt[1].replace(/<\/?style>/g, "")
+    var styleEl = document.getElementById("avalonStyle")
+    var xxx = ttt[0].split("MS_OPTION_BUTTON")
+    var buttonHTML = xxx[1]
+    menuHTML = xxx[0]
+    try {
+        styleEl.innerHTML += cssText
+    } catch (e) {
+        styleEl.styleSheet.cssText += cssText
+    }
+
     var widget = avalon.ui["select"] = function(element, data, vmodels) {
         var $element = avalon(element), options = data.selectOptions
-        var buttonHTML = '<button type="button" ms-hover="ui-state-hover" ms-active="ui-state-focus"  ms-click="toggleMenu" class="ui-multiselect ui-widget ui-state-default ui-corner-all"  >' +
-                '<span class="ui-icon ui-icon-triangle-2-n-s"></span><span>{{caption}}</span></button>'
         var button = avalon.parseHTML(buttonHTML).firstChild
         button.style.minWidth = options.minWidth + "px"
         button.style.width = Math.max(options.minWidth, element.offsetWidth) + "px"
@@ -36,21 +47,9 @@ define(["avalon", "css!avalon.select.css"], function(avalon) {
 
         avalon.each(element.childNodes, getOptions)
 
-        var menuHTML = '<div class="ui-multiselect-menu ui-widget ui-widget-content ui-corner-all"'
-                + ' ms-visible="toggle" tabindex="-1">'
-                + '<div class="ui-widget-header ui-corner-all ui-multiselect-header ui-helper-clearfix">'
-                + '<ul class="ui-helper-reset">'
-                + '<span ms-if="!multiple">' + options.caption + '</span>'
-                + '<li ms-if="multiple"><a class="ui-multiselect-all"  href="return false" ms-click="checkAll"><span class="ui-icon ui-icon-check"></span><span>{{checkAllText}}</span></a></li>'
-                + '<li ms-if="multiple"><a class="ui-multiselect-none" href="return false" ms-click="unCheckAll"><span class="ui-icon ui-icon-closethick"></span><span>{{unCheckAllText}}</span></a></li>'
-                + '<li class="ui-multiselect-close"><a href="#" class="ui-multiselect-close" ms-click="closeMenu"><span class="ui-icon ui-icon-circle-close"></span></a></li>'
-                + '</ul></div>'
-                + '<ul class="ui-multiselect-checkboxes ui-helper-reset" ms-css-height="height" ms-each-el="list" >'
-                + '<li ms-class="ui-multiselect-optgroup-label:!el.isOption" >'
-                + '<a href="#" ms-if="!el.isOption" >{{el.text}}</a>'
-                + '<label for="rubylouvre" ms-if="el.isOption" ms-hover="ui-state-hover" ms-class="ui-state-disabled:el.disabled" ms-click="changeState($event,el)" class="ui-corner-all">'
-                + '<input ms-visible="multiple" ms-disabled="el.disabled"  ms-checked="el.selected" type="checkbox"><span>{{el.text}}</span></label></li>'
-                + '</ul></div>'
+        menuHTML = menuHTML.replace("MS_OPTION_CAPTION", options.caption)
+
+
         var menu = avalon.parseHTML(menuHTML).firstChild
         menu.style.width = button.style.width
         var curCaption = options.caption
@@ -172,8 +171,8 @@ define(["avalon", "css!avalon.select.css"], function(avalon) {
         selectedIndex: 0,
         checkAllText: "全选",
         unCheckAllText: "全不选",
-        onChange: avalon.noop,//当它的选项发生改变时的回调
-        onOpen: avalon.noop,//下拉框的所有菜单项都显示出来时的回调（点击它）
+        onChange: avalon.noop, //当它的选项发生改变时的回调
+        onOpen: avalon.noop, //下拉框的所有菜单项都显示出来时的回调（点击它）
         onClose: avalon.noop//下拉框的所有菜单项都隐藏出来时的回调（点击它的X按钮）
     }
     return avalon

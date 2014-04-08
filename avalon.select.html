@@ -1,0 +1,75 @@
+<div class="ui-multiselect-menu ui-widget ui-widget-content ui-corner-all"
+     ms-visible="toggle" 
+     tabindex="-1">
+    <div class="ui-widget-header ui-corner-all ui-multiselect-header ui-helper-clearfix">
+        <ul class="ui-helper-reset">
+            <span ms-if="!multiple">MS_OPTION_CAPTION</span>
+            <li ms-if="multiple">
+                <a class="ui-multiselect-all" ms-click="checkAll" href="return false">
+                    <span class="ui-icon ui-icon-check"></span><span>{{checkAllText}}</span>
+                </a>
+            </li>
+            <li ms-if="multiple">
+                <a class="ui-multiselect-none" ms-click="unCheckAll" href="return false">
+                    <span class="ui-icon ui-icon-closethick"></span><span>{{unCheckAllText}}</span>
+                </a>
+            </li>
+            <li class="ui-multiselect-close">
+                <a class="ui-multiselect-close" ms-click="closeMenu" href="#">
+                    <span class="ui-icon ui-icon-circle-close"></span>
+                </a>
+            </li>
+        </ul></div>
+    <ul class="ui-multiselect-checkboxes ui-helper-reset" ms-css-height="height" ms-each-el="list" >
+        <li ms-class="ui-multiselect-optgroup-label:!el.isOption" >
+            <a href="#" ms-if="!el.isOption" >{{el.text}}</a>
+            <label class="ui-corner-all"
+                   ms-if="el.isOption" 
+                   ms-hover="ui-state-hover" 
+                   ms-class="ui-state-disabled:el.disabled" 
+                   ms-click="changeState($event,el)" 
+                   for="rubylouvre" 
+                   >
+                <input ms-visible="multiple" ms-disabled="el.disabled"  ms-checked="el.selected" type="checkbox">
+                <span>{{el.text}}</span>
+            </label>
+        </li>
+    </ul>
+</div>
+MS_OPTION_BUTTON
+<button  class="ui-multiselect ui-widget ui-state-default ui-corner-all"
+         ms-hover="ui-state-hover" 
+         ms-active="ui-state-focus"  
+         ms-click="toggleMenu" 
+         type="button"  
+         ><span class="ui-icon ui-icon-triangle-2-n-s"></span><span>{{caption}}</span>
+</button>
+MS_OPTION_STYLE
+<style>
+    .ui-multiselect { padding:2px 0 2px 4px; text-align:left }
+    .ui-multiselect span.ui-icon { float:right }
+    .ui-multiselect-single .ui-multiselect-checkboxes input { position:absolute !important; top: auto !important; left:-9999px; }
+    .ui-multiselect-single .ui-multiselect-checkboxes label { padding:5px !important }
+
+    .ui-multiselect-header { margin-bottom:3px; padding:3px 0 3px 4px }
+    .ui-multiselect-header ul { font-size:0.9em }
+    .ui-multiselect-header ul li { float:left; padding:0 10px 0 0 }
+    .ui-multiselect-header a { text-decoration:none }
+    .ui-multiselect-header a:hover { text-decoration:underline }
+    .ui-multiselect-header span.ui-icon { float:left }
+    .ui-multiselect-header li.ui-multiselect-close { float:right; text-align:right; padding-right:0 }
+
+    .ui-multiselect-menu { display:none; padding:3px; position:absolute; z-index:10000; text-align: left }
+    .ui-multiselect-checkboxes { position:relative /* fixes bug in IE6/7 */; overflow-y:scroll }
+    .ui-multiselect-checkboxes label { cursor:default; display:block; border:1px solid transparent; padding:3px 1px }
+    .ui-multiselect-checkboxes label input { position:relative; top:1px }
+    .ui-multiselect-checkboxes li { clear:both; font-size:0.9em; padding-right:3px }
+    .ui-multiselect-checkboxes li.ui-multiselect-optgroup-label { text-align:center; font-weight:bold; border-bottom:1px solid }
+    .ui-multiselect-checkboxes li.ui-multiselect-optgroup-label a { display:block; padding:3px; margin:1px 0; text-decoration:none }
+
+    /* remove label borders in IE6 because IE6 does not support transparency */
+    * html .ui-multiselect-checkboxes label { border:none }
+    .ui-helper-clearfix{
+        _zoom:1
+    }
+</style>

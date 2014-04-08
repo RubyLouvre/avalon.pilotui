@@ -4,10 +4,11 @@
     <head>
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <script src="../avalon.js"></script>
+        <script src="avalon.js"></script>
         <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/start/jquery-ui.css" />
 
         <script>
+
             var model = avalon.define("ooo", function(vm) {
                 vm.options = ["aaa", "bbb", "ccc", "ddd"]
                 //动态更新widget中的数据
@@ -22,24 +23,19 @@
             setTimeout(function() {
                 //动态更新原select中的数据
                 model.options.push("eee", "fff", "ggg")
-                avalon.vmodels.second.select(1)//动态改变选项
-                avalon.vmodels.second.select(2)
+           //     avalon.vmodels.second.select(1)//动态改变选项
+           //     avalon.vmodels.second.select(2)
             }, 3000)
             require("avalon.select", function() {
+                avalon.define("test", avalon.noop)
                 avalon.scan()
-            })/*
-             avalon.define("second", function(vm){
-                vm.$skipArray = ["opts"]
-                vm.opts = {
-                    onChange: function(){}
-                }
-             })
-             */
+            })
+
         </script>
 
     </head>
     <body>
-        <div>
+        <div ms-controller="test">
             <select title="Basic example" multiple="multiple" name="example-basic" size="5" ms-widget="select" >
                 <option value="option2">Option 2</option>
                 <option value="option1">Option 1</option>

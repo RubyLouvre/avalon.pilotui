@@ -14,14 +14,8 @@ define(["avalon", "text!avalon.select.html"], function(avalon, menuHTML) {
     }
 
     var widget = avalon.ui["select"] = function(element, data, vmodels) {
-        var $element = avalon(element), options = data.selectOptions
-        var button = avalon.parseHTML(buttonHTML).firstChild
-        button.style.minWidth = options.minWidth + "px"
-        button.style.width = Math.max(options.minWidth, element.offsetWidth) + "px"
-        button.title = element.title
-        $element.addClass("ui-helper-hidden-accessible")
-
-        var list = [], index = 0, els = [], model
+        var options = data.selectOptions
+        var list = [], index = 0, els = [], menu, button
         function getOptions(i, el) {
             if (el.tagName === "OPTION") {
                 list.push({
@@ -49,44 +43,64 @@ define(["avalon", "text!avalon.select.html"], function(avalon, menuHTML) {
 
         menuHTML = menuHTML.replace("MS_OPTION_CAPTION", options.caption)
 
-
-        var menu = avalon.parseHTML(menuHTML).firstChild
-        menu.style.width = button.style.width
-        var curCaption = options.caption
-        var canClose = false
-
-        avalon.bind(button, "mouseenter", function(e) {
-            canClose = false
-        })
-
-        avalon.bind(menu, "mouseleave", function(e) {
-            canClose = true
-        })
-        avalon.bind(document, "click", function(e) {
-            if (canClose) {
-                model.toggle = false
+        function getCaption() {
+            if (vmodel.multiple) {
+                var l = vmodel.list.filter(function(el) {
+                    return el.isOption && el.selected && !el.disabled
+                }).length
+                return l ? l + " selected" : options.caption
+            } else {
+                return  element[element.selectedIndex].text
             }
-        })
-        model = avalon.define(data.selectId, function(vm) {
+        }
+        var vmodel = avalon.define(data.selectId, function(vm) {
             avalon.mix(vm, options)
             vm.list = list
             vm.multiple = element.multiple
-            function getCaption() {
-                if (vm.multiple) {
-                    var l = vm.list.filter(function(el) {
-                        return el.isOption && el.selected && !el.disabled
-                    }).length
-                    return l ? l + " selected" : curCaption
-                } else {
-                    return  element[element.selectedIndex].text
-                }
+            vm.$init = function() {
+                menu = avalon.parseHTML(menuHTML).firstChild
+                button = avalon.parseHTML(buttonHTML).firstChild
+
+                button.style.minWidth = options.minWidth + "px"
+                button.style.width = Math.max(options.minWidth, element.offsetWidth) + "px"
+                button.title = element.title
+
+                menu.style.width = button.style.width
+                avalon(element).addClass("ui-helper-hidden-accessible")
+                
+                var canClose = false
+                avalon.bind(menu, "mouseleave", function(e) {
+                    canClose = true
+                })
+                avalon.bind(document, "click", function(e) {
+                    if (canClose) {
+                        vmodel.toggle = false
+                    }
+                })
+                avalon.bind(button, "mouseenter", function(e) {
+                    canClose = false
+                })
+                
+                avalon.ready(function() {
+                    element.parentNode.insertBefore(button, element.nextSibling)
+                    var vmodes = [vmodel].concat(vmodels)
+                    avalon.scan(button, vmodes)
+                    document.body.appendChild(menu)
+                    avalon.scan(menu, vmodes)
+                })
             }
+            vm.$remove = function() {
+                button.innerHTML = menu.innerHTML = ""
+                button.parentNode.removeChild(button)
+                menu.parentNode.removeChild(menu)
+            }
+
             vm.resetOptions = function() {
                 list = [], els = [], index = 0
                 avalon.each(element.childNodes, getOptions)
-                model.list = list
+                vmodel.list = list
             }
-            vm.caption = getCaption()
+
             vm.toggleMenu = function() {
                 vm.toggle = !vm.toggle
             }
@@ -150,18 +164,9 @@ define(["avalon", "text!avalon.select.html"], function(avalon, menuHTML) {
                 }
             }
         })
-        avalon.ready(function() {
-            avalon.nextTick(function() {
-                element.parentNode.insertBefore(button, element.nextSibling)
-                var modes = [model].concat(vmodels)
-                avalon.scan(button, modes)
-                document.body.appendChild(menu)
-                avalon.scan(menu, modes)
-            })
+        vmodel.caption = getCaption()
 
-        })
-
-        return model
+        return vmodel
     }
     widget.defaults = {
         minWidth: 225,

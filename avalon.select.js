@@ -180,3 +180,4 @@ define(["avalon", "css!avalon.select.css"], function(avalon) {
 })
 //比较重要的配置项 onOpen, onClose, onChange, list, multiple
 //http://www.erichynds.com/examples/jquery-ui-multiselect-widget/demos/#single
+//浅析 Bootstrap 的 CSS 类名设计 https://github.com/cssmagic/blog/issues/45

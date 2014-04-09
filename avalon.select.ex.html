@@ -23,8 +23,8 @@
             setTimeout(function() {
                 //动态更新原select中的数据
                 model.options.push("eee", "fff", "ggg")
-           //     avalon.vmodels.second.select(1)//动态改变选项
-           //     avalon.vmodels.second.select(2)
+                avalon.vmodels.second.select(1)//动态改变选项
+                avalon.vmodels.second.select(2)
             }, 3000)
             require("avalon.select", function() {
                 avalon.define("test", avalon.noop)
@@ -51,8 +51,11 @@
                 <option value="option12">Option 12</option>
             </select>
 
-            <select title="Basic example" multiple="multiple" name="example-basic" size="5" ms-widget="select,second" ms-controller="ooo" ms-each="options" data-each-rendered="callback">
-                <option>{{el}}</option>
+            <select title="Basic example" multiple="multiple" name="example-basic" 
+                    size="5" 
+                    ms-widget="select,second" ms-controller="ooo" 
+                    >
+                <option ms-repeat="options" data-repeat-rendered="callback">{{el}}</option>
             </select>
 
             <select name="example-optgroup" multiple="multiple" size="5" ms-widget="select">

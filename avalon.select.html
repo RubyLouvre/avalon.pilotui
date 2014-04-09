@@ -20,18 +20,18 @@
                 </a>
             </li>
         </ul></div>
-    <ul class="ui-multiselect-checkboxes ui-helper-reset" ms-css-height="height" ms-each-el="list" >
-        <li ms-class="ui-multiselect-optgroup-label:!el.isOption" >
-            <a href="#" ms-if="!el.isOption" >{{el.text}}</a>
+    <ul class="ui-multiselect-checkboxes ui-helper-reset" ms-css-height="height"  >
+        <li ms-repeat-ele="list" ms-class="ui-multiselect-optgroup-label:!ele.isOption" >
+            <a href="#" ms-if="!ele.isOption" >{{ele.text}}</a>
             <label class="ui-corner-all"
-                   ms-if="el.isOption" 
+                   ms-if="ele.isOption" 
                    ms-hover="ui-state-hover" 
-                   ms-class="ui-state-disabled:el.disabled" 
-                   ms-click="changeState($event,el)" 
+                   ms-class="ui-state-disabled:ele.disabled" 
+                   ms-click="changeState($event,ele)" 
                    for="rubylouvre" 
                    >
-                <input ms-visible="multiple" ms-disabled="el.disabled"  ms-checked="el.selected" type="checkbox">
-                <span>{{el.text}}</span>
+                <input ms-visible="multiple" ms-disabled="ele.disabled"  ms-checked="ele.selected" type="checkbox">
+                <span>{{ele.text}}</span>
             </label>
         </li>
     </ul>

@@ -15,7 +15,7 @@ define(["avalon", "text!avalon.select.html"], function(avalon, menuHTML) {
 
     var widget = avalon.ui["select"] = function(element, data, vmodels) {
         var options = data.selectOptions
-        var list = [], index = 0, els = [], menu, button
+        var list = [], index = 0, els = [], /*els将在changeState中使用*/  menu, button
         function getOptions(i, el) {
             if (el.tagName === "OPTION") {
                 list.push({
@@ -39,8 +39,6 @@ define(["avalon", "text!avalon.select.html"], function(avalon, menuHTML) {
             }
         }
 
-        avalon.each(element.childNodes, getOptions)
-
         menuHTML = menuHTML.replace("MS_OPTION_CAPTION", options.caption)
 
         function getCaption() {
@@ -55,19 +53,19 @@ define(["avalon", "text!avalon.select.html"], function(avalon, menuHTML) {
         }
         var vmodel = avalon.define(data.selectId, function(vm) {
             avalon.mix(vm, options)
-            vm.list = list
+            vm.list = []
             vm.multiple = element.multiple
             vm.$init = function() {
                 menu = avalon.parseHTML(menuHTML).firstChild
                 button = avalon.parseHTML(buttonHTML).firstChild
-
+             
                 button.style.minWidth = options.minWidth + "px"
                 button.style.width = Math.max(options.minWidth, element.offsetWidth) + "px"
                 button.title = element.title
 
                 menu.style.width = button.style.width
                 avalon(element).addClass("ui-helper-hidden-accessible")
-                
+
                 var canClose = false
                 avalon.bind(menu, "mouseleave", function(e) {
                     canClose = true
@@ -80,13 +78,21 @@ define(["avalon", "text!avalon.select.html"], function(avalon, menuHTML) {
                 avalon.bind(button, "mouseenter", function(e) {
                     canClose = false
                 })
-                
+
+                vmodels = [vmodel].concat(vmodels)
+                //如果原上拉框是动态生成的，需要预先处理
+                avalon.scan(element, vmodels)
+
                 avalon.ready(function() {
+
+                    avalon.each(element.childNodes, getOptions)
+                    vmodel.list = list
+
                     element.parentNode.insertBefore(button, element.nextSibling)
-                    var vmodes = [vmodel].concat(vmodels)
-                    avalon.scan(button, vmodes)
+                    avalon.scan(button, vmodels)
+
                     document.body.appendChild(menu)
-                    avalon.scan(menu, vmodes)
+                    avalon.scan(menu, vmodels)
                 })
             }
             vm.$remove = function() {

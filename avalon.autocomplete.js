@@ -4,7 +4,7 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, sourceHTML)
 
         var $element = avalon(element),
                 refreshList,
-                tempValue = ""
+                tempValue = "", sourceList
         //处理配置
         var options = data.autocompleteOptions
         var source = options.source || []
@@ -47,7 +47,7 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, sourceHTML)
                 }
             })
             vm.$init = function() {
-                var sourceList = avalon.parseHTML(sourceHTML).firstChild
+                sourceList = avalon.parseHTML(sourceHTML).firstChild
                 avalon.bind(sourceList, "click", function() {
                     vmodel.value = vmodel.overvalue
                 })
@@ -114,6 +114,10 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, sourceHTML)
                     avalon.scan(element, models)
                     avalon.scan(sourceList, models)
                 })
+            }
+            vm.$remove = function() {
+                document.body.removeChild(sourceList)
+               
             }
         })
 

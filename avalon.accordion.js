@@ -1,7 +1,6 @@
 define(["avalon"], function(avalon) {
 
     var useTransition = window.TransitionEvent || window.WebKitTransitionEvent
-
     var styleEl = document.getElementById("avalonStyle")
     //http://stackoverflow.com/questions/5103283/does-internet-explorer-support-css-transitions
     if (useTransition) {
@@ -9,39 +8,45 @@ define(["avalon"], function(avalon) {
         styleEl.innerHTML += ".ui-accordion-collapse {height:0px!important;padding:0px!important;}"
     }
     var widget = avalon.ui.accordion = function(element, data, vmodels) {
-        var $element = avalon(element), options = data.accordionOptions, tabs = [],
-                tabpanels = [],
-                model, el
-        var fragment = document.createDocumentFragment()
-
-        $element.addClass(" ui-accordion ui-widget ui-helper-reset")
-        while (el = element.firstChild) {
-            fragment.appendChild(el)
-            if (el.tagName === "H3") {
-                el.setAttribute("ms-hover", "ui-state-hover")
-                el.setAttribute("ms-click", "activate")
-                avalon(el).addClass("ui-accordion-header ui-helper-reset ui-state-default ui-accordion-icons ui-corner-all")
-                var icon = document.createElement("span")
-                icon.className = "ui-accordion-header-icon ui-icon";
-                icon.setAttribute("ms-class-0", "ui-icon-triangle-1-s:active == " + tabs.length)
-                icon.setAttribute("ms-class-1", "ui-icon-triangle-1-e:active != " + tabs.length)
-                el.appendChild(icon)
-                tabs.push(el)
-            }
-            if (el.tagName === "DIV") {
-                avalon(el).addClass("ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom")
-                if (useTransition) {
-                    avalon(el).addClass("ui-transition")
-                    el.setAttribute("ms-class-ui-accordion-collapse", "active != " + tabpanels.length)
-                } else {
-                    el.setAttribute("ms-visible", "active == " + tabpanels.length)
+        var $element = avalon(element), options = data.accordionOptions, tabpanels = [], tabs = []
+        var vmodel = avalon.define(data.accordionId, function(vm) {
+            avalon.mix(vm, options)
+            vm.$init = function() {
+                var fragment = document.createDocumentFragment(), el
+                $element.addClass(" ui-accordion ui-widget ui-helper-reset")
+                while (el = element.firstChild) {
+                    fragment.appendChild(el)
+                    if (el.tagName === "H3") {
+                        el.setAttribute("ms-hover", "ui-state-hover")
+                        el.setAttribute("ms-click", "activate")
+                        avalon(el).addClass("ui-accordion-header ui-helper-reset ui-state-default ui-accordion-icons ui-corner-all")
+                        var icon = document.createElement("span")
+                        icon.className = "ui-accordion-header-icon ui-icon";
+                        icon.setAttribute("ms-class-0", "ui-icon-triangle-1-s:active == " + tabs.length)
+                        icon.setAttribute("ms-class-1", "ui-icon-triangle-1-e:active != " + tabs.length)
+                        el.appendChild(icon)
+                        tabs.push(el)
+                    }
+                    if (el.tagName === "DIV") {
+                        avalon(el).addClass("ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom")
+                        if (useTransition) {
+                            avalon(el).addClass("ui-transition")
+                            el.setAttribute("ms-class-ui-accordion-collapse", "active != " + tabpanels.length)
+                        } else {
+                            el.setAttribute("ms-visible", "active == " + tabpanels.length)
+                        }
+                        tabpanels.push(el)
+                    }
                 }
-                tabpanels.push(el)
+                avalon.nextTick(function() {
+                    element.appendChild(fragment)
+                    avalon.scan(element, [vmodel].concat(vmodels))
+                })
             }
-        }
-        var model = avalon.define(data.accordionId, function(vm) {
-            vm.active = options.active;
-            vm.collapsible = options.collapsible
+            vm.$remove = function() {
+                element.innerHTML = ""
+            }
+
             vm.activate = function(e) {
                 e.preventDefault()
                 var index = tabs.indexOf(this)
@@ -56,10 +61,8 @@ define(["avalon"], function(avalon) {
                 }
             }
         })
-        avalon.nextTick(function() {
-            element.appendChild(fragment)
-            avalon.scan(element, [model].concat(vmodels))
-        })
+        return vmodel
+
     }
     widget.defaults = {
         active: 0,

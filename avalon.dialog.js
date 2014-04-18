@@ -151,7 +151,7 @@ define(["avalon.button", "text!avalon.dialog.html", "text!avalon.dialog.buttons.
             document.documentElement.removeChild(root)
         }
     }
-   <!-遮罩层(全部dialog共用)
+   //遮罩层(全部dialog共用)
     var overlay = avalon.parseHTML('<div class="ui-widget-overlay ui-front">&nbsp;</div>').firstChild
 //判定是否支持css3 transform
     var transforms = {//IE9+ firefox3.5+ chrome4+ safari3.1+ opera10.5+

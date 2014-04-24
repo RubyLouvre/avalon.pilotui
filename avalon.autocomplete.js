@@ -37,7 +37,7 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, popupHTML) 
                             }
                             //创建弹出层
                             popup = vmodel.$popup()
-                            console.log(popup)
+
                             vmodel.activeIndex = 0 //重置高亮行
                             avalon.scan(popup, _vmodels)
 
@@ -186,7 +186,6 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, popupHTML) 
     }
     //通过监听textarea,input的keyup进行，移动列表项的高亮位置
     function moveIndex(e, vmodel) {
-        console.log(e.keyCode)
         switch (e.keyCode) {
             case 13:
                 // enter

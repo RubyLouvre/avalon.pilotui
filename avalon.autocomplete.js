@@ -37,13 +37,15 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, popupHTML) 
                             }
                             //创建弹出层
                             popup = vmodel.$popup()
+                            if (popup) {
 
-                            vmodel.activeIndex = 0 //重置高亮行
-                            avalon.scan(popup, _vmodels)
+                                vmodel.activeIndex = 0 //重置高亮行
+                                avalon.scan(popup, _vmodels)
 
-                            avalon(popup).bind("mouseleave", function() {
-                                vmodel.$model.__mouseenter__ = false
-                            })
+                                avalon(popup).bind("mouseleave", function() {
+                                    vmodel.$model.__mouseenter__ = false
+                                })
+                            }
                         }
 
                         function callback() {
@@ -60,7 +62,7 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, popupHTML) 
                                 vmodel.$model.__toString__ = toString
                             }
                             vmodel.toggle = !!datalist.length
-                            if (!vmodel.toggle) {
+                            if (!vmodel.toggle && popup) {
                                 popup.parentNode.removeChild(popup)
                             }
                         }

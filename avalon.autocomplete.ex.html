@@ -7,8 +7,8 @@
         <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
 
         <script>
-            require("avalon.autocomplete1", function() {
-                avalon.define("xxx", function(vm) {
+            require("avalon.autocomplete", function() {
+                avalon.define("test", function(vm) {
                     vm.autocomplete = {
                         datalist: [
                             "ActionScript",
@@ -58,7 +58,7 @@
         </script>
     </head>
     <body>
-        <input name="eee" ms-controller="xxx" ms-widget="autocomplete" placeholder="输入j试试"/><span>请在此搜索主流的计算机语言</span>
+        <input ms-controller="test" ms-widget="autocomplete" placeholder="输入j试试"/><span>请在此搜索主流的计算机语言</span>
 
     </body>
 </html>

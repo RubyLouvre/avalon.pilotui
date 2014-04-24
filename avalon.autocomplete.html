@@ -1,12 +1,12 @@
 <ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content ui-corner-all" 
-    ms-visible="show" >
+    ms-visible="toggle" >
     <li class="ui-menu-item" 
-        ms-repeat-presentation="matcher" >
+        ms-repeat-presentation="_datalist" >
         <a class="ui-corner-all" 
-           ms-mouseover="get(presentation)" 
-           ms-hover="ui-state-focus"
-           ms-class="ui-state-focus:matcher[selectedIndex] === presentation"
+           ms-mouseenter="$hover($event,$index)" 
+           ms-class="ui-state-focus:activeIndex == $index"
+           ms-click="$select"
            tabindex="-1" 
-           >{{presentation}}</a>
+           >{{presentation|html}}</a>
     </li>
 </ul>

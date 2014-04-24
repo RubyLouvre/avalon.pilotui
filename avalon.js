@@ -3026,7 +3026,7 @@
         }
         var target = ret.target = event.srcElement
         if (event.type.indexOf("key") === 0) {
-            ret.which = event.charCode != null ? event.charCode : event.keyCode
+            ret.keyCode = ret.which = event.charCode != null ? event.charCode : event.keyCode
         } else if (/mouse|click/.test(event.type)) {
             var doc = target.ownerDocument || DOC
             var box = doc.compatMode === "BackCompat" ? doc.body : doc.documentElement
@@ -3160,7 +3160,7 @@
             if (removed.length) {
                 ret = this._del(a, removed.length)
                 if (arguments.length <= 2) { //如果没有执行添加操作，需要手动resetIndex
-                    notifySubscribers(this, "index", a)
+                    notifySubscribers(this, "index", 0)
                 }
             }
             if (arguments.length > 2) {
@@ -4028,7 +4028,7 @@
                 } catch (e) {
                 }
                 if (isCycle) {
-                    avalon.error(d + "模块与之前的模块存在循环依赖，请不要直接用script标签引入"+d+"模块")
+                    avalon.error(d + "模块与之前的模块存在循环依赖，请不要直接用script标签引入" + d + "模块")
                 }
                 delete factory.delay //释放内存
                 innerRequire.apply(null, args) //0,1,2 --> 1,2,0

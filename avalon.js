@@ -184,7 +184,7 @@
     avalon.mix({
         rword: rword,
         subscribers: subscribers,
-        version: 1.25,
+        version: 1.26,
         ui: {},
         log: log,
         slice: W3C ? function(nodes, start, end) {
@@ -779,15 +779,15 @@
                         return i
                 return -1
             },
-            //迭代操作，将数组的元素挨个儿传入一个函数中执行。Ptototype.js的对应名字为each。
+            //迭代操作，将数组的元素挨个儿传入一个函数中执行。Prototype.js的对应名字为each。
             forEach: iterator("", '_', ""),
             //迭代类 在数组中的每个项上运行一个函数，如果此函数的值为真，则此元素作为新数组的元素收集起来，并返回新数组
             filter: iterator('r=[],j=0,', 'if(_)r[j++]=this[i]', 'return r'),
-            //收集操作，将数组的元素挨个儿传入一个函数中执行，然后把它们的返回值组成一个新数组返回。Ptototype.js的对应名字为collect。
+            //收集操作，将数组的元素挨个儿传入一个函数中执行，然后把它们的返回值组成一个新数组返回。Prototype.js的对应名字为collect。
             map: iterator('r=[],', 'r[i]=_', 'return r'),
-            //只要数组中有一个元素满足条件（放进给定函数返回true），那么它就返回true。Ptototype.js的对应名字为any。
+            //只要数组中有一个元素满足条件（放进给定函数返回true），那么它就返回true。Prototype.js的对应名字为any。
             some: iterator("", 'if(_)return true', 'return false'),
-            //只有数组中的元素都满足条件（放进给定函数返回true），它才返回true。Ptototype.js的对应名字为all。
+            //只有数组中的元素都满足条件（放进给定函数返回true），它才返回true。Prototype.js的对应名字为all。
             every: iterator("", 'if(!_)return false', 'return true')
         })
     }
@@ -1630,23 +1630,28 @@
         scanAttr(elem, vmodels) //扫描特性节点
     }
 
-    function scanNodes(parent, vmodels) {
+    function  scanNodes(parent, vmodels) {
         var node = parent.firstChild
-
         while (node) {
             var nextNode = node.nextSibling
             if (node.nodeType === 1) {
-                scanTag(node, vmodels) //扫描元素节点
-            } else if (node.nodeType === 3 && rexpr.test(node.nodeValue)) {
-                scanText(node, vmodels) //扫描文本节点
+                scanTag(node, vmodels)
+            } else if (node.nodeType === 3) {
+                if (rexpr.test(node.data)) {
+                    scanText(node, node.data, vmodels)
+                }
+            } else if (node.nodeType === 8) {//在IE6-8里，如果插值表达式的界定符为<% %>，那么对应位置会变成
+                if (rexpr.test(node.innerHTML)) {//一个注释节点，见#346
+                    scanText(node, node.innerHTML, vmodels)
+                }
             }
             node = nextNode
         }
     }
 
-    function scanText(textNode, vmodels) {
+    function scanText(textNode, text, vmodels) {
         var bindings = [],
-                tokens = scanExpr(textNode.nodeValue)
+                tokens = scanExpr(text)
         if (tokens.length) {
             for (var i = 0, token; token = tokens[i++]; ) {
                 var node = DOC.createTextNode(token.value) //将文本转换为文本节点，并替换原来的文本节点
@@ -1741,7 +1746,7 @@
                 break
             default:
                 executeBindings(bindings, vmodels)
-                if (!stopScan[elem.tagName] && rbind.test(elem.innerHTML)) {
+                if (!stopScan[elem.tagName] && rbind.test(elem.innerHTML.replace(rlt, "<").replace(rgt, ">"))) {
                     scanNodes(elem, vmodels) //扫描子孙元素
                 }
                 break;
@@ -1802,7 +1807,9 @@
 
     var rfilters = /\|\s*(\w+)\s*(\([^)]*\))?/g,
             r11a = /\|\|/g,
-            r11b = /U2hvcnRDaXJjdWl0/g
+            r11b = /U2hvcnRDaXJjdWl0/g,
+            rlt = /&lt;/g,
+            rgt = /&gt;/g
 
     function scanExpr(str) {
         var tokens = [],
@@ -2634,7 +2641,7 @@
             data.proxies = []
             data.template = template
             node = template.firstChild
-            data.fastRepeat = node.nodeType === 1 && template.lastChild === node && !node.attributes["ms-controller"] && !node.attributes["ms-important"]
+            data.fastRepeat = !!node && node.nodeType === 1 && template.lastChild === node && !node.attributes["ms-controller"] && !node.attributes["ms-important"]
             if (freturn) {
                 return
             }
@@ -2891,6 +2898,7 @@
 
                     removeFn = function(e) {
                         var key = e.keyCode
+                        //    command            modifiers                   arrows
                         if (key === 91 || (15 < key && key < 19) || (37 <= key && key <= 40))
                             return
                         updateVModel()
@@ -3026,7 +3034,7 @@
         }
         var target = ret.target = event.srcElement
         if (event.type.indexOf("key") === 0) {
-            ret.keyCode = ret.which = event.charCode != null ? event.charCode : event.keyCode
+            ret.which = event.charCode != null ? event.charCode : event.keyCode
         } else if (/mouse|click/.test(event.type)) {
             var doc = target.ownerDocument || DOC
             var box = doc.compatMode === "BackCompat" ? doc.body : doc.documentElement
@@ -3177,13 +3185,10 @@
             return this._.length
         },
         remove: function(el) { //移除第一个等于给定值的元素
-            var index = this.indexOf(el)
-            if (index >= 0) {
-                return this.removeAt(index)
-            }
+            return this.removeAt(this.indexOf(el))
         },
         removeAt: function(index) { //移除指定索引上的元素
-            this.splice(index, 1)
+            return this.splice(index, 1)
         },
         clear: function() {
             this.$model.length = this.length = this._.length = 0 //清空数组
@@ -3876,14 +3881,7 @@
             if (url === "ready!" || (modules[url] && modules[url].state === 2)) {
                 return url
             }
-            //2. 转化为完整路径
-            if (typeof kernel.shim[url] === "object") {
-                shim = kernel.shim[url]
-            }
-            if (kernel.paths[url]) { //别名机制
-                url = kernel.paths[url]
-            }
-            //3.  处理text!  css! 等资源
+            //2.  处理text!  css! 等资源
             var plugin
             url = url.replace(/^\w+!/, function(a) {
                 plugin = a.slice(0, -1)
@@ -3891,6 +3889,14 @@
             })
             plugin = plugin || "js"
             plugin = plugins[plugin] || noop
+            //3. 转化为完整路径
+            if (typeof kernel.shim[url] === "object") {
+                shim = kernel.shim[url]
+            }
+            if (kernel.paths[url]) { //别名机制
+                url = kernel.paths[url]
+            }
+
             //4. 补全路径
             if (/^(\w+)(\d)?:.*/.test(url)) {
                 ret = url

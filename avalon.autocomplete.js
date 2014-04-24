@@ -186,6 +186,7 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, popupHTML) 
     }
     //通过监听textarea,input的keyup进行，移动列表项的高亮位置
     function moveIndex(e, vmodel) {
+        var max = vmodel._datalist.size()
         switch (e.keyCode) {
             case 13:
                 // enter
@@ -202,7 +203,7 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, popupHTML) 
                 e.preventDefault();
                 var index = vmodel.activeIndex - 1
                 if (index < 0) {
-                    index = vmodel.limit - 1
+                    index = max - 1
                 }
                 vmodel.activeIndex = index
                 break;
@@ -210,7 +211,7 @@ define(["avalon", "text!avalon.autocomplete.html"], function(avalon, popupHTML) 
                 // down arrow
                 e.preventDefault();
                 var index = vmodel.activeIndex + 1
-                if (index === vmodel.limit) {
+                if (index === max) {
                     index = 0
                 }
                 vmodel.activeIndex = index

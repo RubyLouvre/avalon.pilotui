@@ -25,6 +25,9 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, pageHTML) {
                 element.innerHTML = pageHTML
                 avalon.scan(element, [vmodel].concat(vmodels))
             }
+            vm.$remove = function() {
+                element.innerHTML = element.textContent = ""
+            }
             vm.jumpPage = function(event, page) {
                 event.preventDefault()
                 if (page !== vm.currentPage) {

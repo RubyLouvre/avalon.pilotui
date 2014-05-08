@@ -6,7 +6,7 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, pageHTML) {
         $element.addClass("ui-pagination ui-widget-header ui-corner-all ui-buttonset ")
         var vmodel = avalon.define(data.paginationId, function(vm) {
             avalon.mix(vm, options)
-            vm.$skipArray = ["perPages", "showPages", "currentIndex", "total", "ellipseText", "alwaysShowPrev", "alwaysShowNext"]//这些属性不被监控
+            vm.$skipArray = ["perPages", "showPages", "currentIndex", "ellipseText", "alwaysShowPrev", "alwaysShowNext"]//这些属性不被监控
             vm.$init = function() {
                 if (vmodel.alwaysShowPrev) {
                     pageHTML = pageHTML.replace('ms-if="firstPage!==1"', "")
@@ -57,10 +57,12 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, pageHTML) {
                     vm.pages = getPages(vm)
                 }
             }
-            vm.pages = getPages(vm)
+            vm.$watch("total", function(){
+                 vmodel.pages = getPages(vmodel)
+            })
             vm.getPages = getPages
         })
-
+        vmodel.pages = getPages(vmodel)
         return vmodel
     }
     widget.defaults = {

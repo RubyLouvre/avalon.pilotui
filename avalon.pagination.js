@@ -6,7 +6,7 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, pageHTML) {
         $element.addClass("ui-pagination ui-widget-header ui-corner-all ui-buttonset ")
         var vmodel = avalon.define(data.paginationId, function(vm) {
             avalon.mix(vm, options)
-            vm.$skipArray = ["perPages", "showPages", "currentIndex", "ellipseText", "alwaysShowPrev", "alwaysShowNext"]//这些属性不被监控
+            vm.$skipArray = ["showPages", "ellipseText", "alwaysShowPrev", "alwaysShowNext"]//这些属性不被监控
             vm.$init = function() {
                 if (vmodel.alwaysShowPrev) {
                     pageHTML = pageHTML.replace('ms-if="firstPage!==1"', "")
@@ -54,11 +54,15 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, pageHTML) {
                             vm.currentPage = page
                             break
                     }
-                    vm.pages = getPages(vm)
+                    vm.onJump.call(element, event, vm)
+                    efficientChangePages(vm.pages, getPages(vm))
                 }
             }
-            vm.$watch("total", function(){
-                 vmodel.pages = getPages(vmodel)
+            vm.$watch("total", function() {
+                efficientChangePages(vm.pages, getPages(vm))
+            })
+            vm.$watch("perPages", function() {
+                efficientChangePages(vm.pages, getPages(vm))
             })
             vm.getPages = getPages
         })
@@ -82,6 +86,7 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, pageHTML) {
         getHref: function(page) {
             return "?page=" + page
         },
+        onJump: avalon.noop,
         getTitle: function(a) {
             switch (a) {
                 case "first":
@@ -106,7 +111,54 @@ define(["avalon", "text!avalon.pagination.html"], function(avalon, pageHTML) {
     } catch (e) {
         styleEl.styleSheet.cssText += cssText
     }
+    //vmodel.pages = getPages(vmodel) 会波及一些其他没有改动的元素节点,现在只做个别元素的添加删除操作
+    function efficientChangePages(aaa, bbb) {
+        var obj = {}
+        for (var i = 0, an = aaa.length; i < an; i++) {
+            var el = aaa[i]
+            obj[el] = {action: "del", el: el}
+        }
+        for (var i = 0, bn = bbb.length; i < bn; i++) {
+            var el = bbb[i]
+            if (obj[el]) {
+                obj[el] = {action: "retain", el: el}
+            } else {
+                obj[el] = {action: "add", el: el}
+            }
+        }
+        var scripts = []
+        for (var i in obj) {
+            scripts.push({
+                action: obj[i].action,
+                el: obj[i].el
+            })
+        }
+        scripts.sort(function(a, b) {
+            return a.el - b.el
+        })
+        scripts.forEach(function(el, index) {
+            el.index = index
+            return el
+        })
+//添加添加
+        for (var i = 0, el; el = scripts[i++]; ) {
+            switch (el.action) {
+                case "add":
+                    aaa.splice(el.index, 0, el.el)
+                    break;
+            }
+        }
+        scripts.reverse()
+        //再删除
+        for (var i = 0, el; el = scripts[i++]; ) {
+            switch (el.action) {
+                case "del":
+                    aaa.splice(el.index, 1)
+                    break;
+            }
+        }
 
+    }
     function getPages(vm) {
         var c = vm.currentPage, p = Math.ceil(vm.total / vm.perPages), pages = [], s = vm.showPages, max = p,
                 left = c, right = c

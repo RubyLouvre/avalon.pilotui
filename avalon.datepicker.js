@@ -1,4 +1,4 @@
-define(["avalon.position", "text!avalon.datepicker.html"], function(avalon, tmpl) {
+define(["avalon.position", "text!avalon.datepicker.html"], function(avalon, tmpl) {//chronological
 //http://xdsoft.net/jqplugins/datetimepicker/
     function formatMonth(date, format) {
         if (Array.isArray(format)) {
